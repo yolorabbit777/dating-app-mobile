@@ -44,8 +44,13 @@ const ChatScreen: React.FC<Props> = ({navigation, route}) => {
     try {
       setLoading(true);
       const response = await messageAPI.getConversation(user.id, otherUser.id);
-      if (response.success) {
-        setMessages(response.messages.reverse()); // Reverse to show latest at bottom
+      if (response.success && response.messages) {
+        // Convert backend format to frontend format
+        const formattedMessages = response.messages.map(msg => ({
+          ...msg,
+          timestamp: msg.sentAt || msg.timestamp, // Handle both formats
+        }));
+        setMessages(formattedMessages.reverse()); // Reverse to show latest at bottom
       }
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -55,28 +60,30 @@ const ChatScreen: React.FC<Props> = ({navigation, route}) => {
     }
   };
 
+  // In the sendMessage function, update to handle backend response:
   const sendMessage = async (): Promise<void> => {
     if (!newMessage.trim() || !user) return;
 
-    const tempMessage: Message = {
-      id: Date.now(),
-      senderId: user.id,
-      receiverId: otherUser.id,
-      content: newMessage.trim(),
-      timestamp: new Date().toISOString(),
-      isRead: false,
-    };
-
-    setMessages(prev => [...prev, tempMessage]);
+    const messageContent = newMessage.trim();
     setNewMessage('');
 
     try {
-      await messageAPI.sendMessage(user.id, otherUser.id, newMessage.trim());
+      const response = await messageAPI.sendMessage(
+        user.id,
+        otherUser.id,
+        messageContent,
+      );
+      if (response.success && response.data) {
+        const formattedMessage = {
+          ...response.data,
+          timestamp: response.data.sentAt || response.data.timestamp,
+        };
+        setMessages(prev => [...prev, formattedMessage]);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       Alert.alert('Error', 'Failed to send message');
-      // Remove the temp message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setNewMessage(messageContent); // Restore message on error
     }
   };
 

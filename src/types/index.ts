@@ -15,6 +15,7 @@ export interface Message {
   content: string;
   timestamp: string;
   isRead: boolean;
+  sentAt?: string; // Backend uses sentAt
 }
 
 export interface Conversation {
@@ -63,16 +64,19 @@ export interface ApiResponse<T = any> {
 export interface DiscoverUsersResponse {
   success: boolean;
   users: User[];
+  message?: string;
 }
 
 export interface ConversationResponse {
   success: boolean;
   messages: Message[];
+  message?: string;
 }
 
 export interface ConversationsResponse {
   success: boolean;
   conversations: Conversation[];
+  message?: string;
 }
 
 // Navigation Types

@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {User, AuthContextType, AuthResult, SignupData} from '../types';
+import {authAPI} from '../services/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -48,41 +49,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     password: string,
   ): Promise<AuthResult> => {
     try {
-      // Mock login for demo - replace with actual API call
-      if (email === 'john@example.com' && password === 'password123') {
-        const mockUser: User = {
-          id: 1,
-          email: 'john@example.com',
-          name: 'John Doe',
-          age: 28,
-          bio: 'Love hiking and coffee',
-          profilePicture: 'https://via.placeholder.com/300x300?text=John',
-        };
-        await AsyncStorage.setItem('user', JSON.stringify(mockUser));
-        setUser(mockUser);
+      const response = await authAPI.login(email, password);
+
+      if (response.success && response.data) {
+        await AsyncStorage.setItem('user', JSON.stringify(response.data));
+        setUser(response.data);
         return {success: true};
       }
-      return {success: false, message: 'Invalid credentials'};
-    } catch (error) {
-      return {success: false, message: 'Login failed'};
+
+      return {success: false, message: response.message || 'Login failed'};
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
+      };
     }
   };
 
   const signup = async (userData: SignupData): Promise<AuthResult> => {
     try {
-      // Mock signup for demo - replace with actual API call
-      const mockUser: User = {
-        id: Date.now(),
-        ...userData,
-        profilePicture: `https://via.placeholder.com/300x300?text=${userData.name.charAt(
-          0,
-        )}`,
+      const response = await authAPI.signup(userData);
+
+      if (response.success && response.data) {
+        await AsyncStorage.setItem('user', JSON.stringify(response.data));
+        setUser(response.data);
+        return {success: true};
+      }
+
+      return {success: false, message: response.message || 'Signup failed'};
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return {
+        success: false,
+        message: error.message || 'Network error occurred',
       };
-      await AsyncStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      return {success: true};
-    } catch (error) {
-      return {success: false, message: 'Signup failed'};
     }
   };
 
