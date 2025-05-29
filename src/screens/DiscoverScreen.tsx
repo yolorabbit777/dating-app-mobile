@@ -320,15 +320,18 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   passButton: {
+    zIndex: 99,
     backgroundColor: '#FF6B6B',
   },
   superLikeButton: {
+    zIndex: 99,
     backgroundColor: '#4FC3F7',
     width: 50,
     height: 50,
     borderRadius: 25,
   },
   likeButton: {
+    zIndex: 99,
     backgroundColor: '#4ECDC4',
   },
   loadingContainer: {
